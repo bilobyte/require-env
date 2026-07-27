@@ -1,0 +1,39 @@
+name: Require environment values
+description: Fail fast when required GitHub Actions variables or secrets are unset or empty.
+
+inputs:
+  variables:
+    description: Comma, space, or newline-separated names of required variables.
+    required: false
+    default: ""
+  secrets:
+    description: Comma, space, or newline-separated names of required secrets.
+    required: false
+    default: ""
+
+outputs:
+  valid:
+    description: Whether every required value is present and non-empty.
+    value: ${{ steps.validate.outputs.valid }}
+  missing-variables:
+    description: Comma-separated names of missing or empty variables.
+    value: ${{ steps.validate.outputs.missing-variables }}
+  missing-secrets:
+    description: Comma-separated names of missing or empty secrets.
+    value: ${{ steps.validate.outputs.missing-secrets }}
+
+runs:
+  using: composite
+  steps:
+    - name: Validate required environment values
+      id: validate
+      shell: bash
+      env:
+        REQUIRE_ENV_VARIABLES: ${{ inputs.variables }}
+        REQUIRE_ENV_SECRETS: ${{ inputs.secrets }}
+        REQUIRE_ENV_ACTION_PATH: ${{ github.action_path }}
+      run: '"${REQUIRE_ENV_ACTION_PATH}/src/validate.sh"'
+
+branding:
+  icon: check-circle
+  color: green

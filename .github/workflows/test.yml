@@ -1,0 +1,44 @@
+name: Test
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+jobs:
+  shell-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v6
+
+      - name: Run validator tests
+        run: ./tests/test.sh
+
+  action-smoke-test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v6
+
+      - name: Validate fixture values
+        id: require-env
+        uses: ./
+        with:
+          variables: |
+            APP_ENV
+            API_URL
+          secrets: API_TOKEN
+        env:
+          APP_ENV: test
+          API_URL: https://example.test
+          API_TOKEN: fixture-token
+
+      - name: Check action output
+        env:
+          VALID: ${{ steps.require-env.outputs.valid }}
+        run: test "$VALID" = "true"
